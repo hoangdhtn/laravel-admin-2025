@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'status',
     ];
 
     /**
@@ -44,6 +45,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Check if user account is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if user account is locked.
+     */
+    public function isLocked(): bool
+    {
+        return $this->status === 'locked';
+    }
+
+    /**
+     * Check if user account is inactive.
+     */
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
     }
 
     /**

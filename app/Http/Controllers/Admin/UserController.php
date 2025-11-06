@@ -29,9 +29,14 @@ class UserController extends Controller
 
         // Status filter
         if ($request->has('status') && $request->status !== null) {
-            if ($request->status === 'active') {
+            $query->where('status', $request->status);
+        }
+
+        // Email verified filter
+        if ($request->has('email_verified') && $request->email_verified !== null) {
+            if ($request->email_verified === '1') {
                 $query->whereNotNull('email_verified_at');
-            } elseif ($request->status === 'inactive') {
+            } elseif ($request->email_verified === '0') {
                 $query->whereNull('email_verified_at');
             }
         }
@@ -64,6 +69,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'status' => ['required', 'in:active,inactive,locked'],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,id'],
         ]);
@@ -72,6 +78,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'status' => $validated['status'],
             'email_verified_at' => $request->has('email_verified') ? now() : null,
         ]);
 
@@ -103,12 +110,14 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'status' => ['required', 'in:active,inactive,locked'],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,id'],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        $user->status = $validated['status'];
         
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -144,10 +153,50 @@ class UserController extends Controller
                 ->with('error', 'Bạn không thể xóa chính mình!');
         }
 
+        // Detach all roles before deleting
+        $user->roles()->detach();
+        
+        $userName = $user->name;
         $user->delete();
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Người dùng đã được xóa thành công!');
+            ->with('success', "Người dùng '{$userName}' đã được xóa thành công!");
+    }
+
+    /**
+     * Delete multiple users at once.
+     */
+    public function destroyMultiple(Request $request)
+    {
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array'],
+            'user_ids.*' => ['exists:users,id'],
+        ]);
+
+        $deletedCount = 0;
+        $currentUserId = auth()->id();
+
+        foreach ($validated['user_ids'] as $userId) {
+            // Skip if trying to delete yourself
+            if ($userId == $currentUserId) {
+                continue;
+            }
+
+            $user = User::find($userId);
+            if ($user) {
+                $user->roles()->detach();
+                $user->delete();
+                $deletedCount++;
+            }
+        }
+
+        if ($deletedCount > 0) {
+            return redirect()->route('admin.users.index')
+                ->with('success', "Đã xóa thành công {$deletedCount} người dùng!");
+        }
+
+        return redirect()->route('admin.users.index')
+            ->with('error', 'Không thể xóa người dùng đã chọn!');
     }
 }
 

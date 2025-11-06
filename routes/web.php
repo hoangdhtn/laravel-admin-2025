@@ -19,6 +19,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::post('/users/destroy-multiple', [\App\Http\Controllers\Admin\UserController::class, 'destroyMultiple'])->name('users.destroy-multiple');
     Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
     Route::resource('permissions', \App\Http\Controllers\Admin\PermissionController::class);
 });

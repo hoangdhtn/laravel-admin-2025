@@ -75,6 +75,29 @@
                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
 
+            <!-- Status -->
+            <div class="mb-6">
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                    Trạng thái tài khoản <span class="text-red-500">*</span>
+                </label>
+                <select id="status" 
+                        name="status" 
+                        required
+                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('status') border-red-500 @enderror">
+                    <option value="active" {{ old('status', $user->status ?? 'active') === 'active' ? 'selected' : '' }}>Hoạt động</option>
+                    <option value="inactive" {{ old('status', $user->status ?? 'active') === 'inactive' ? 'selected' : '' }}>Chưa kích hoạt</option>
+                    <option value="locked" {{ old('status', $user->status ?? 'active') === 'locked' ? 'selected' : '' }}>Đã khóa</option>
+                </select>
+                <p class="mt-1 text-xs text-gray-500">
+                    <span class="font-medium">Hoạt động:</span> Tài khoản có thể đăng nhập<br>
+                    <span class="font-medium">Chưa kích hoạt:</span> Tài khoản chưa được kích hoạt<br>
+                    <span class="font-medium">Đã khóa:</span> Tài khoản bị khóa, không thể đăng nhập
+                </p>
+                @error('status')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <!-- Email Verified -->
             <div class="mb-6">
                 <div class="flex items-center">
