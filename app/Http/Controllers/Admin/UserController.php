@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Setting;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -65,10 +66,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $passwordMin = (int) (Setting::get('password_min_length', 8));
+        $passwordRules = ['required', 'string', 'confirmed', 'min:'.$passwordMin];
+        if (Setting::get('password_require_mixed')) {
+            $passwordRules[] = 'regex:/^(?=.*[a-z])(?=.*[A-Z]).+$/';
+        }
+        if (Setting::get('password_require_number')) {
+            $passwordRules[] = 'regex:/^(?=.*\d).+$/';
+        }
+        if (Setting::get('password_require_symbol')) {
+            $passwordRules[] = 'regex:/^(?=.*[^\w\s]).+$/';
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => $passwordRules,
             'status' => ['required', 'in:active,inactive,locked'],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,id'],
@@ -106,10 +119,22 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $passwordMin = (int) (Setting::get('password_min_length', 8));
+        $passwordRules = ['nullable', 'string', 'confirmed', 'min:'.$passwordMin];
+        if (Setting::get('password_require_mixed')) {
+            $passwordRules[] = 'regex:/^(?=.*[a-z])(?=.*[A-Z]).+$/';
+        }
+        if (Setting::get('password_require_number')) {
+            $passwordRules[] = 'regex:/^(?=.*\d).+$/';
+        }
+        if (Setting::get('password_require_symbol')) {
+            $passwordRules[] = 'regex:/^(?=.*[^\w\s]).+$/';
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'password' => $passwordRules,
             'status' => ['required', 'in:active,inactive,locked'],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,id'],

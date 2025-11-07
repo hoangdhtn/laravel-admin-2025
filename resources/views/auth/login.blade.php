@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <title>Đăng nhập - {{ config('app.name', 'Laravel') }}</title>
+    <title>Đăng nhập - {{ \App\Models\Setting::get('app_name', config('app.name', 'Laravel')) }}</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -14,19 +14,30 @@
     <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+<head>
+    @php($favicon = \App\Models\Setting::get('favicon_path'))
+    @if($favicon)
+        <link rel="icon" type="image/png" href="{{ $favicon }}">
+    @endif
+</head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <!-- Logo and Header -->
         <div class="text-center">
             <div class="flex justify-center">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                </div>
+                @php($logo = \App\Models\Setting::get('logo_path'))
+                @if($logo)
+                    <img src="{{ $logo }}" alt="Logo" class="h-16 w-auto rounded-xl shadow-lg">
+                @else
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                @endif
             </div>
             <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-                Chào mừng trở lại
+                {{ \App\Models\Setting::get('app_name', config('app.name', 'Laravel')) }}
             </h2>
             <p class="mt-2 text-sm text-gray-600">
                 Đăng nhập vào tài khoản của bạn
